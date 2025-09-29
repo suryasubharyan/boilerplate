@@ -12,6 +12,6 @@ router.get('/user-details', Wrap(controller.GetUserDetails))
 router.post('/signin', Wrap(controller.SignIn))
 router.post('/signup', Wrap(controller.Signup))
 router.post('/reset-password', Wrap(controller.ResetPassword))
-router.post('/sign-out', authorize, Wrap(controller.ResetPassword))
+router.post('/sign-out', authorize, Wrap(controller.SignOut))
 
 export default router

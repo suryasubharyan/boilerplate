@@ -54,12 +54,26 @@ class SESHelper {
 		subject,
 		templateName,
 		data = {},
-	}: EmailParams): Promise<any> {
-		const { returnTemplate } = await import(`../../build/templates/${templateName}.js`)
-		const parsedHTML = returnTemplate(data)
+    }: EmailParams): Promise<any> {
+        // Development mode: Log email instead of sending
+        if (!ID || !SECRET || !SES_DEFAULT_EMAIL) {
+            const { returnTemplate } = await import(`../../build/templates/${templateName}.js`)
+            const parsedHTML = returnTemplate(data)
+            
+            Logger.info(`[DEV MODE] Email would be sent to: ${to}`)
+            Logger.info(`[DEV MODE] Subject: ${subject}`)
+            Logger.info(`[DEV MODE] Content: ${parsedHTML}`)
+            Logger.info(`[DEV MODE] OTP Code: ${data.OTP}`)
+            
+            return { MessageId: 'dev-mode-message-id' }
+        }
 
-		const toAddresses = Array.isArray(to) ? to : [to]
-		const ccAddresses = cc ? (Array.isArray(cc) ? cc : [cc]) : []
+        const { returnTemplate } = await import(`../../build/templates/${templateName}.js`)
+        const parsedHTML = returnTemplate(data)
+
+        const toAddresses = Array.isArray(to) ? to : [to]
+        const ccAddresses = cc ? (Array.isArray(cc) ? cc : [cc]) : []
+
 
 		const params: SendEmailCommandInput = {
 			Destination: {

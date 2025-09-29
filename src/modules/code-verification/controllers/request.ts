@@ -247,7 +247,8 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		}
 	}
 
-	const OTP = '1234' //GenerateRandomNumberOfLength(4)
+    // Generate a new OTP for every request
+    const OTP = GenerateRandomNumberOfLength(4)
 	const codeVerification = await App.Models.CodeVerification.create({
 		...payload,
 		internalOTP: {
