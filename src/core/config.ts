@@ -23,6 +23,21 @@ export interface ConfigInterface {
 		S3_BUCKET_NAME: string
 		SUPPORT_EMAIL: string
 	}
+
+	EMAIL?: {
+		PROVIDER: 'aws' | 'brevo' | 'dev'
+		FROM_EMAIL: string
+		BREVO_SMTP_HOST?: string
+		BREVO_SMTP_PORT?: number
+		BREVO_SMTP_USER?: string
+		BREVO_SMTP_PASS?: string
+	}
+
+	SMS?: {
+		PROVIDER: 'aws' | 'brevo' | 'dev'
+		BREVO_API_KEY?: string
+		BREVO_SENDER?: string
+	}
 	CODE_VERIFICATION: {
 		LINK_TOKEN_LENGTH: number
 
@@ -49,6 +64,10 @@ export interface ConfigInterface {
 	}
 	CRYPTO_SECRET_KEY: string
 	MAX_FILE_SIZE: number
+
+	AUTH?: {
+		REQUIRE_PRE_SIGNUP_VERIFICATION: boolean
+	}
 }
 
 export default (): ConfigInterface => {

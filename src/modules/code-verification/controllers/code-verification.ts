@@ -86,6 +86,30 @@ export default async function CodeVerification(req: Request, res: Response) {
 			)
 		}
 
+		// If the purpose is PRE_SIGNUP, set verified flags
+		if (existingCodeVerification.purpose === CodeVerificationPurpose.PRE_SIGNUP) {
+			const update: any = {}
+			if (existingCodeVerification.email) update.emailVerified = true
+			if (existingCodeVerification.phone) update.phoneVerified = true
+
+			// Determine how to find the user: by _user, or fallback to email/phone
+			let userFilter: any = null
+			if (existingCodeVerification._user) {
+				userFilter = { _id: existingCodeVerification._user }
+			} else if (existingCodeVerification.email) {
+				userFilter = { email: existingCodeVerification.email.toLowerCase() }
+			} else if (existingCodeVerification.phone && existingCodeVerification.countryCode) {
+				userFilter = {
+					phone: existingCodeVerification.phone,
+					countryCode: existingCodeVerification.countryCode,
+				}
+			}
+
+			if (userFilter) {
+				await App.Models.User.updateOne(userFilter, { $set: update })
+			}
+		}
+
 		// Otherwise, send success response
 		const existingCodeVerificationJSON = existingCodeVerification.toObject()
 		delete existingCodeVerificationJSON.internalOTP

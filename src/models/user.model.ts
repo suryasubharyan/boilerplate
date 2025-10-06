@@ -26,7 +26,10 @@ export interface IUser {
 	phone?: string
 	countryCode?: string
 	password?: string
+	emailVerified?: boolean
+	phoneVerified?: boolean
 	accountType?: Role
+	tokenVersion?: number
 	country?: string
 	socialAuthType?: string
 	lastSigninAt?: Date
@@ -47,18 +50,17 @@ export interface IUser {
 	registeredDevices: Array<{ fcmToken: string; deviceType: string }>
 }
 
-const schema = new Schema<IUser>(
+const schema = new Schema(
 	{
 		firstName: { type: String, sparse: true },
 		lastName: { type: String, sparse: true },
 		parsedFullName: { type: String, select: false },
 		password: { type: String, select: false },
 		email: { type: String, sparse: true },
-		accountType: {
-			type: String,
-			enum: [Role.USER, Role.SUPER_ADMIN, Role.ADMIN],
-			default: Role.USER,
-		},
+		emailVerified: { type: Boolean, default: false },
+		phoneVerified: { type: Boolean, default: false },
+		tokenVersion: { type: Number, default: 0 },
+		accountType: { type: String, enum: [Role.USER, Role.SUPER_ADMIN, Role.ADMIN], default: Role.USER },
 		lastSigninAt: Date,
 		accountMetadata: {
 			isBlocked: { type: Boolean, default: false },
@@ -70,20 +72,12 @@ const schema = new Schema<IUser>(
 		},
 		phone: String,
 		countryCode: String,
-		socialAuthType: {
-			type: String,
-			enum: Object.keys(SocialAuthType),
-			default: SocialAuthType.NONE,
-		},
+		socialAuthType: { type: String, enum: Object.keys(SocialAuthType), default: SocialAuthType.NONE },
 		registeredDevices: { type: [{ fcmToken: String, deviceType: String }], default: [] },
 		twoFactorAuthentication: {
 			isActivated: { type: Boolean, default: false },
-			authenticationType: {
-				type: String,
-				enum: Object.keys(TwoFactorAuthenticationSettings),
-			},
+			authenticationType: { type: String, enum: Object.keys(TwoFactorAuthenticationSettings) },
 		},
-		// From Base Model
 		isActive: { type: Boolean, default: true },
 		_updatedBy: { type: ObjectId, ref: Models.User },
 	},

@@ -3,6 +3,7 @@ import GetUserDetails from './get-user'
 import ResetPassword from './reset-password'
 import SignIn from './sign-in'
 import SignOut from './sign-out'
+import SignOutAll from './sign-out-all'
 import Signup from './sign-up'
 
 export default class AuthController {
@@ -12,4 +13,5 @@ export default class AuthController {
 	SignIn = SignIn
 	ResetPassword = ResetPassword
 	SignOut = SignOut
+	SignOutAll = SignOutAll
 }

@@ -13,5 +13,6 @@ router.post('/signin', Wrap(controller.SignIn))
 router.post('/signup', Wrap(controller.Signup))
 router.post('/reset-password', Wrap(controller.ResetPassword))
 router.post('/sign-out', authorize, Wrap(controller.SignOut))
+router.post('/sign-out-all', authorize, Wrap(controller.SignOutAll))
 
 export default router

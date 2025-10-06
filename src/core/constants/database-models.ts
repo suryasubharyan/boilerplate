@@ -5,4 +5,5 @@ export const enum Models {
 	CodeVerification = 'code-verifications',
 	Transaction = 'transactions',
 	Notification = 'notifications',
+	Room = 'rooms',
 }

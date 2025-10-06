@@ -52,6 +52,11 @@ export default async function SignIn(req: Request, res: Response) {
 		return res.forbidden({ message: App.Messages.Auth.Error.InvalidCredentials() })
 	}
 
+	// Enforce verified contact before issuing token
+	if (email && !existingUser.emailVerified) {
+		return res.forbidden({ message: 'Please verify your email to sign in.' })
+	}
+
 	if (phone && countryCode) {
 		const codeVerification = await App.Models.CodeVerification.findOne({
 			_id: _codeVerification,
@@ -81,6 +86,11 @@ export default async function SignIn(req: Request, res: Response) {
 			await codeVerification.save()
 			return res.forbidden({ message: App.Messages.GeneralError.SessionExpired() })
 		}
+	}
+
+	// If signing in via phone path, ensure phone is verified
+	if (phone && countryCode && !existingUser.phoneVerified) {
+		return res.forbidden({ message: 'Please verify your phone number to sign in.' })
 	}
 
 	const tokenPromise = authAfterEffectsHelper.GenerateToken({

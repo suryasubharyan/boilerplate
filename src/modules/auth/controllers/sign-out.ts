@@ -35,7 +35,7 @@ export default async function SignOut(req: Request, res: Response) {
 		existingUser.registeredDevices = newRegisteredDevices
 	}
 
-	await existingUser.save()
+    await existingUser.save()
 
 	// All Done
 	return res.success({

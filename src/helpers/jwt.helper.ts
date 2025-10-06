@@ -24,8 +24,16 @@ class JWTHelper {
 			const user = await App.Models.User.findOne({
 				_id: verification.sub,
 				isActive: true,
-				// 'loginSessions.sessionIdentifier': verification?.sessionIdentifier,
 			})
+
+			// Enforce tokenVersion match to support logout-all
+			if (user && typeof verification._tokenVersion === 'number') {
+				if (user.tokenVersion !== verification._tokenVersion) {
+					return {
+						error: { message: 'Token invalidated. Please sign in again.' },
+					}
+				}
+			}
 
 			delete user?.password
 			return {
@@ -74,6 +82,9 @@ class JWTHelper {
 
 		const jwtPayload = {
 			roles: payload.roles,
+			// include user tokenVersion for logout-all support
+			// will be filled by caller if needed
+			_tokenVersion: payload._tokenVersion,
 		}
 		return jwt.sign(
 			jwtPayload,

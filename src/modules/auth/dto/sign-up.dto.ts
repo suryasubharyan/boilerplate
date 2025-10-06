@@ -2,7 +2,7 @@ import MongoId from '@helpers/object-id-validator.helper'
 import Joi from 'joi'
 
 export const SignupDTO = Joi.object({
-	_codeVerification: Joi.string().custom(MongoId.Validate, 'ObjectId Validation').required(),
+	_codeVerification: Joi.string().custom(MongoId.Validate, 'ObjectId Validation').optional(),
 	email: Joi.string().email(),
 	countryCode: Joi.string().min(2),
 	phone: Joi.string().min(5).max(16),
@@ -15,7 +15,7 @@ export const SignupDTO = Joi.object({
 		state: Joi.string().required(),
 		country: Joi.string().required(),
 	}),
-	_designation: Joi.string().custom(MongoId.Validate, 'ObjectId Validation').required(),
+	_designation: Joi.string().custom(MongoId.Validate, 'ObjectId Validation').optional(),
 })
 	.xor('email', 'phone')
 	.when(Joi.object({ email: Joi.exist() }), {

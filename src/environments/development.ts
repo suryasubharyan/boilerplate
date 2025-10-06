@@ -34,6 +34,21 @@ export default (): ConfigInterface => {
 			SUPPORT_EMAIL: process.env.AWS_SES_SUPPORT_EMAIL,
 		},
 
+				EMAIL: {
+			PROVIDER: (process.env.EMAIL_PROVIDER as any) || 'dev',
+			FROM_EMAIL: process.env.EMAIL_FROM || process.env.AWS_SES_DEFAULT_FROM_EMAIL,
+			BREVO_SMTP_HOST: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+			BREVO_SMTP_PORT: +(process.env.BREVO_SMTP_PORT || 587),
+			BREVO_SMTP_USER: process.env.BREVO_SMTP_USER,
+			BREVO_SMTP_PASS: process.env.BREVO_SMTP_PASS,
+		},
+
+		SMS: {
+			PROVIDER: (process.env.SMS_PROVIDER as any) || 'dev',
+			BREVO_API_KEY: process.env.BREVO_SMS_API_KEY,
+			BREVO_SENDER: process.env.BREVO_SMS_SENDER, // e.g., "YourBrand" or verified sender name/number
+		},
+
 		CODE_VERIFICATION: {
 			LINK_TOKEN_LENGTH: +process.env.CODE_VERIFICATION_LINK_TOKEN_LENGTH || 50,
 
@@ -65,5 +80,10 @@ export default (): ConfigInterface => {
 		},
 		CRYPTO_SECRET_KEY: process.env.CRYPTO_SECRET_KEY,
 		MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE) || 2,
+
+		AUTH: {
+			REQUIRE_PRE_SIGNUP_VERIFICATION:
+				(process.env.AUTH_REQUIRE_PRE_SIGNUP_VERIFICATION ?? 'true').toLowerCase() === 'true',
+		},
 	}
 }
