@@ -23,6 +23,7 @@ export default (): ConfigInterface => {
 		SALT_ROUNDS: parseInt(process.env.SALT_ROUNDS),
 		JWT_SECRET: process.env.JWT_SECRET,
 		JWT_EXPIRY: process.env.JWT_EXPIRY,
+		REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY || '7d',
 
 		AWS: {
 			ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,

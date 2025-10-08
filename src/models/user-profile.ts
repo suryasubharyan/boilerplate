@@ -14,9 +14,12 @@ export interface IUserProfile extends IBaseModel {
 		state?: string
 		country?: string
 	}
+	linkedInProfileUrl?: string
+	profileImage?: string
+	resume?: string
 }
 
-const schema = new Schema<IUserProfile>(
+const schema = new Schema(
 	{
 		_user: { type: ObjectId, ref: Models.User, required: true },
 		_designation: { type: ObjectId, ref: 'designations' },
@@ -26,6 +29,9 @@ const schema = new Schema<IUserProfile>(
 			state: String,
 			country: String,
 		},
+		linkedInProfileUrl: String,
+		profileImage: String,
+		resume: String,
 
 		// From Base Model
 		isActive: { type: Boolean, default: true },

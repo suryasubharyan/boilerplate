@@ -7,6 +7,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 class JWTHelper {
 	private JWT_SECRET = App.Config.JWT_SECRET
 	private JWT_EXPIRY = App.Config.JWT_EXPIRY
+	private REFRESH_TOKEN_EXPIRY = App.Config.REFRESH_TOKEN_EXPIRY
 	private keyDir = resolve(`${__dirname}/../../keys`)
 	private publicKeyPath = resolve(`${this.keyDir}/rsa.pub`)
 	private privateKeyPath = resolve(`${this.keyDir}/rsa`)
@@ -92,6 +93,31 @@ class JWTHelper {
 			{
 				algorithm: 'RS256',
 				expiresIn: this.JWT_EXPIRY,
+				subject: _user,
+			}
+		)
+	}
+
+	/**
+	 * Create a refresh token
+	 * @param {*} payload
+	 * @returns refresh token
+	 */
+	GenerateRefreshToken(payload: any): string {
+		const { _id: _user } = payload
+
+		const privateKey = readFileSync(this.privateKeyPath)
+
+		const jwtPayload = {
+			type: 'refresh',
+			_tokenVersion: payload._tokenVersion,
+		}
+		return jwt.sign(
+			jwtPayload,
+			{ key: privateKey.toString(), passphrase: this.JWT_SECRET },
+			{
+				algorithm: 'RS256',
+				expiresIn: this.REFRESH_TOKEN_EXPIRY,
 				subject: _user,
 			}
 		)

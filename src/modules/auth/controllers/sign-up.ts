@@ -36,7 +36,7 @@ export default async function Signup(req: Request, res: Response) {
 
         if (!codeVerification) {
             return res.badRequest({
-                message: App.Messages.Auth.Error.PreSignCodeVerificationFailed(),
+                message: App.Messages.Auth.Error.PreSignCodeVerificationFailed,
             })
         }
 
@@ -52,7 +52,7 @@ export default async function Signup(req: Request, res: Response) {
         ) {
             codeVerification.isActive = false
             await codeVerification.save()
-            return res.forbidden({ message: App.Messages.GeneralError.SessionExpired() })
+            return res.forbidden({ message: App.Messages.GeneralError.SessionExpired })
         }
 
         if (codeVerification.email) {
@@ -61,12 +61,12 @@ export default async function Signup(req: Request, res: Response) {
             phone = codeVerification.phone
             countryCode = codeVerification.countryCode
         } else {
-            throw Error(App.Messages.GeneralError.SomethingWentWrong())
+            throw Error(App.Messages.GeneralError.SomethingWentWrong)
         }
     } else if (requirePreSignup) {
         // If required but not provided
         return res.badRequest({
-            message: App.Messages.Auth.Error.PreSignCodeVerificationFailed(),
+            message: App.Messages.Auth.Error.PreSignCodeVerificationFailed,
         })
     }
 
@@ -75,7 +75,7 @@ export default async function Signup(req: Request, res: Response) {
 		existingUserCount = await App.Models.User.findByEmail(email.trim().toLowerCase())
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.Auth.Error.EmailAlreadyInUse(),
+				message: App.Messages.Auth.Error.EmailAlreadyInUse,
 			})
 		}
 	}
@@ -85,7 +85,7 @@ export default async function Signup(req: Request, res: Response) {
 		existingUserCount = await App.Models.User.findByPhone(phone.trim(), countryCode.trim())
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.Auth.Error.PhoneAlreadyInUse(),
+				message: App.Messages.Auth.Error.PhoneAlreadyInUse,
 			})
 		}
 	}
@@ -112,50 +112,21 @@ export default async function Signup(req: Request, res: Response) {
 	// Create User Profile Doc
 	const userProfile = new App.Models.UserProfile({ _user: user._id, _designation, location })
 
-    await Promise.all([
+	await Promise.all([
         user.save(),
         codeVerification ? codeVerification.save() : Promise.resolve(),
         userProfile.save(),
     ])
 
-    // If pre-signup verification was skipped, send post-signup verification code
-    if (!requirePreSignup && !_codeVerification) {
-        const OTP = GenerateRandomNumberOfLength(4)
-        const postSignupCode = await App.Models.CodeVerification.create(
-            _.omitBy(
-                {
-                    email,
-                    phone,
-                    countryCode,
-                    purpose: CodeVerificationPurpose.PRE_SIGNUP,
-                    internalOTP: { code: OTP.toString() },
-                },
-                _.isNil
-            )
-        )
-
-        if (postSignupCode.email) {
-            await MailHelper.send({
-                to: postSignupCode.email,
-                subject: 'Verify Your Email',
-                templateName: 'verify-email',
-                data: { OTP },
-            })
-        }
-        if (postSignupCode.phone && postSignupCode.countryCode) {
-            await otpHelper.SendCodeToMobile(
-                postSignupCode.countryCode + postSignupCode.phone,
-                App.Messages.Helpers.OTPHelper.CodeSentSuccessFullyOverEmail({
-                    OTP,
-                    BrandName: App.Config.AWS.BRAND_NAME,
-                })
-            )
-        }
-    }
-
     // All Done (no token at signup)
+    // Note: User must request verification code via /code-verification/request
     return res.created({
-        message: App.Messages.Auth.Success.SignupSuccessful(),
-        item: {},
+        message: App.Messages.Auth.Success.SignupSuccessful,
+        item: {
+            _user: user._id,
+            email: user.email,
+            phone: user.phone,
+            message: 'Account created successfully. Please verify your email/phone using /code-verification/request'
+        },
     })
 }

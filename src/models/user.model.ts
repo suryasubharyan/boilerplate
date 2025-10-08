@@ -44,7 +44,10 @@ export interface IUser {
 	twoFactorAuthentication: {
 		isActivated: boolean
 		authenticationType?: TwoFactorAuthenticationSettings
+		totpSecret?: string
 	}
+	refreshToken?: string
+	refreshTokenExpiresAt?: Date
 	isActive: boolean
 	_updatedBy: typeof ObjectId
 	registeredDevices: Array<{ fcmToken: string; deviceType: string }>
@@ -77,7 +80,10 @@ const schema = new Schema(
 		twoFactorAuthentication: {
 			isActivated: { type: Boolean, default: false },
 			authenticationType: { type: String, enum: Object.keys(TwoFactorAuthenticationSettings) },
+			totpSecret: { type: String, select: false },
 		},
+		refreshToken: { type: String, select: false },
+		refreshTokenExpiresAt: { type: Date, select: false },
 		isActive: { type: Boolean, default: true },
 		_updatedBy: { type: ObjectId, ref: Models.User },
 	},

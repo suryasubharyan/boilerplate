@@ -13,6 +13,7 @@ export interface ConfigInterface {
 	SALT_ROUNDS: number
 	JWT_SECRET: string
 	JWT_EXPIRY: string
+	REFRESH_TOKEN_EXPIRY: string
 
 	AWS: {
 		ACCESS_KEY_ID: string

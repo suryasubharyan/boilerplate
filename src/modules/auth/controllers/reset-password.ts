@@ -39,7 +39,7 @@ export default async function ResetPassword(req: Request, res: Response) {
 		existingUser = await App.Models.User.findByPhone(phone, countryCode)
 	} else {
 		return res.badRequest({
-			message: App.Messages.GeneralError.BadRequest(),
+			message: App.Messages.GeneralError.BadRequest,
 		})
 	}
 
@@ -60,7 +60,7 @@ export default async function ResetPassword(req: Request, res: Response) {
 		existingCodeVerification.isActive = false
 		await existingCodeVerification.save()
 		return res.forbidden({
-			message: App.Messages.Error.GeneralError.SessionExpired(),
+			message: App.Messages.Error.GeneralError.SessionExpired,
 		})
 	}
 
@@ -80,7 +80,7 @@ export default async function ResetPassword(req: Request, res: Response) {
 
 	// All Done
 	return res.success({
-		message: App.Messages.Auth.Success.ResetPasswordSuccessful(),
+		message: App.Messages.Auth.Success.ResetPasswordSuccessful,
 		items: { token: authToken.token },
 	})
 }
