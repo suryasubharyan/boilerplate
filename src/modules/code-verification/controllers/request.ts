@@ -4,6 +4,7 @@ import { Request, Response } from 'express'
 import {
 	RequestDTO,
 	RequestByPhoneDTO,
+	RequestByEmailDTO,
 	RequestByEmailOrPhoneDTO,
 	RequestByEmailForgotPasswordDTO,
 	RequestForSignin2FADTO,
@@ -74,14 +75,14 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 			existingUser = await App.Models.User.findByPhone(payload.phone).select('+socialId')
 		} else {
 			return res.badRequest({
-				message: App.Messages.GeneralError.BadRequest(),
+				message: App.Messages.GeneralError.BadRequest,
 			})
 		}
 
 		// Abort if user not exists
 		if (!existingUser) {
 			return res.notFound({
-				message: App.Messages.CodeVerification.Error.UserNotExists(),
+				message: App.Messages.CodeVerification.Error.UserNotExists,
 			})
 		}
 
@@ -89,7 +90,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		if (existingUser.socialId) {
 			return res.unauthorized({
 				message:
-					App.Messages.CodeVerification.Error.ForgotPasswordSocialAccountNotAllowed(),
+					App.Messages.CodeVerification.Error.ForgotPasswordSocialAccountNotAllowed,
 			})
 		}
 
@@ -117,7 +118,29 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		})
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.CodeVerification.Error.PhoneAlreadyInUse(),
+				message: App.Messages.CodeVerification.Error.PhoneAlreadyInUse,
+			})
+		}
+		payload._user = user._id
+	}
+
+	// validations by purpose type USER_EMAIL_UPDATE
+	if (purpose === CodeVerificationPurpose.USER_EMAIL_UPDATE) {
+		const errors = await requestValidator(RequestByEmailDTO, {
+			email,
+		})
+		if (errors) {
+			return res.unprocessableEntity({ errors })
+		}
+
+		const existingUserCount = await App.Models.User.countDocuments({
+			_id: { $ne: user._id },
+			email: email.toLowerCase(),
+			isActive: true,
+		})
+		if (existingUserCount) {
+			return res.conflict({
+				message: App.Messages.Auth.Error.EmailAlreadyInUse,
 			})
 		}
 		payload._user = user._id
@@ -137,7 +160,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		// Abort if user not exists
 		if (!existingUser) {
 			return res.forbidden({
-				message: App.Messages.Error.CodeVerification.UserNotExists(),
+				message: App.Messages.Error.CodeVerification.UserNotExists,
 			})
 		}
 		payload._user = existingUser._id
@@ -148,7 +171,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		return res.unauthorized({
 			message:
 				existingUser.accountMetadata.customBlockMessage ||
-				App.Messages.GeneralError.AccountBlockedByAdmin(),
+				App.Messages.GeneralError.AccountBlockedByAdmin,
 		})
 	}
 
@@ -176,7 +199,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 								timeLeftToUnblock > 1 ? 's' : ''
 							}`,
 					  })
-					: App.Messages.CodeVerification.Error.DisabledAccount()
+					: App.Messages.CodeVerification.Error.DisabledAccount
 
 			return res.unauthorized({
 				message: existingUser.accountMetadata.customBlockMessage || ON_BLOCK_ERROR_MESSAGE,
@@ -225,7 +248,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 
 	if (previousCodeVerificationAttempts.length >= RESEND_LIMIT_IN_SESSION) {
 		return res.tooManyRequests({
-			message: App.Messages.CodeVerification.Error.ResendLimitExceeded(),
+			message: App.Messages.CodeVerification.Error.ResendLimitExceeded,
 		})
 	}
 
@@ -247,7 +270,8 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		}
 	}
 
-	const OTP = '1234' //GenerateRandomNumberOfLength(4)
+    // Generate a new OTP for every request
+    const OTP = GenerateRandomNumberOfLength(4)
 	const codeVerification = await App.Models.CodeVerification.create({
 		...payload,
 		internalOTP: {

@@ -9,6 +9,16 @@ export const authorize = async (req: Request, res: Response, next: NextFunction)
 		}
 		const token = req.headers.authorization.split(' ')[1]
 
+		// Verify token first to check type
+		const verification = JWTHelper.VerifyToken(token)
+		
+		// Reject refresh tokens - they should only be used at /refresh-token endpoint
+		if (verification?.type === 'refresh') {
+			return res.unauthorized({
+				message: 'Invalid token type. Please use access token.',
+			})
+		}
+
 		const response = await JWTHelper.GetUser({ token })
 
 		if (!response) {

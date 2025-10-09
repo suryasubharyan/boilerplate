@@ -23,6 +23,7 @@ export default (): ConfigInterface => {
 		SALT_ROUNDS: parseInt(process.env.SALT_ROUNDS),
 		JWT_SECRET: process.env.JWT_SECRET,
 		JWT_EXPIRY: process.env.JWT_EXPIRY,
+		REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY || '7d',
 
 		AWS: {
 			ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
@@ -32,6 +33,24 @@ export default (): ConfigInterface => {
 			BRAND_NAME: process.env.AWS_BRAND_NAME || 'Joblo AI',
 			S3_BUCKET_NAME: process.env.AWS_S3_BUCKET,
 			SUPPORT_EMAIL: process.env.AWS_SES_SUPPORT_EMAIL,
+		},
+
+				EMAIL: {
+			PROVIDER: (process.env.EMAIL_PROVIDER as any) || 'dev',
+			FROM_EMAIL: process.env.EMAIL_FROM || process.env.AWS_SES_DEFAULT_FROM_EMAIL,
+			BREVO_SMTP_HOST: process.env.BREVO_SMTP_HOST || 'smtp-relay.brevo.com',
+			BREVO_SMTP_PORT: +(process.env.BREVO_SMTP_PORT || 587),
+			BREVO_SMTP_USER: process.env.BREVO_SMTP_USER,
+			BREVO_SMTP_PASS: process.env.BREVO_SMTP_PASS,
+		},
+
+		SMS: {
+			PROVIDER: (process.env.SMS_PROVIDER as any) || 'dev',
+			BREVO_API_KEY: process.env.BREVO_SMS_API_KEY,
+			BREVO_SENDER: process.env.BREVO_SMS_SENDER, // e.g., "YourBrand" or verified sender name/number
+			VONAGE_API_KEY: process.env.VONAGE_API_KEY,
+			VONAGE_API_SECRET: process.env.VONAGE_API_SECRET,
+			VONAGE_FROM: process.env.VONAGE_FROM || 'Vonage APIs', // Sender name or number
 		},
 
 		CODE_VERIFICATION: {
@@ -65,5 +84,10 @@ export default (): ConfigInterface => {
 		},
 		CRYPTO_SECRET_KEY: process.env.CRYPTO_SECRET_KEY,
 		MAX_FILE_SIZE: parseInt(process.env.MAX_FILE_SIZE) || 2,
+
+		AUTH: {
+			REQUIRE_PRE_SIGNUP_VERIFICATION:
+				(process.env.AUTH_REQUIRE_PRE_SIGNUP_VERIFICATION ?? 'true').toLowerCase() === 'true',
+		},
 	}
 }

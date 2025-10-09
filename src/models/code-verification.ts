@@ -12,6 +12,7 @@ export enum CodeVerificationPurpose {
 	PRE_SIGNUP = 'PRE_SIGNUP',
 	FORGOT_PASSWORD = 'FORGOT_PASSWORD',
 	USER_PHONE_UPDATE = 'USER_PHONE_UPDATE',
+	USER_EMAIL_UPDATE = 'USER_EMAIL_UPDATE',
 	SIGNIN_2FA = 'SIGNIN_2FA',
 	UPDATE_2FA_SETTING_TO_EMAIL = 'UPDATE_2FA_SETTING_TO_EMAIL',
 	UPDATE_2FA_SETTING_TO_PHONE = 'UPDATE_2FA_SETTING_TO_PHONE',
@@ -42,7 +43,7 @@ interface ICodeVerification extends IBaseModel {
 	resendDuration: number
 }
 
-const schema = new Schema<ICodeVerification>(
+const schema = new Schema(
 	{
 		_user: { type: ObjectId },
 		phone: String,

@@ -20,7 +20,7 @@ export default async function SignOut(req: Request, res: Response) {
 
 	if (!existingUser) {
 		return res.forbidden({
-			message: App.Messages.Auth.Error.UserNotExists(),
+			message: App.Messages.Auth.Error.UserNotExists,
 		})
 	}
 
@@ -35,10 +35,10 @@ export default async function SignOut(req: Request, res: Response) {
 		existingUser.registeredDevices = newRegisteredDevices
 	}
 
-	await existingUser.save()
+    await existingUser.save()
 
 	// All Done
 	return res.success({
-		message: App.Messages.Auth.Success.SignOutSuccessful(),
+		message: App.Messages.Auth.Success.SignOutSuccessful,
 	})
 }

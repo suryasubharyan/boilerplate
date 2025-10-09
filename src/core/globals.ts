@@ -10,8 +10,10 @@ import { Messages } from '../response-messages'
 // Database Models
 import { ServerStatModel } from '@models/server-stat'
 import { UserModel } from '@models/user.model'
+import { UserProfileModel } from '@models/user-profile'
 import { CodeVerificationModel } from '@models/code-verification'
 import { NotificationModel } from '@models/notification'
+import RoomModel from '@models/room.model'
 
 // Export Global Variables
 export const Global: any = global
@@ -28,6 +30,8 @@ Global.App = {
 		ServerStat: ServerStatModel,
 		CodeVerification: CodeVerificationModel,
 		User: UserModel,
+		UserProfile: UserProfileModel,
 		Notification: NotificationModel,
+		Room: RoomModel,
 	},
 }

@@ -5,6 +5,7 @@ import authRouter from '@modules/auth/routes'
 import HashGeneratorFromArrayHelper from '@helpers/hash-generator-from-array.helper'
 import { codeVerificationRouter } from '@modules/code-verification/routes'
 import { meRouter } from '@modules/me/routes'
+import roomRouter from '@modules/room/routes'
 import { authorize } from '@middlewares/authorizer'
 
 const rateLimiter = RateLimit({
@@ -23,5 +24,6 @@ router.use('/code-verification', codeVerificationRouter)
 
 router.use(authorize)
 router.use('/me', meRouter)
+router.use('/rooms', roomRouter)
 
 export const AppRoutes = router

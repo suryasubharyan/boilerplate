@@ -31,7 +31,7 @@ export default async function SignIn(req: Request, res: Response) {
 	const [existingUser] = await Promise.all([userPromise])
 
 	if (!existingUser) {
-		return res.notFound({ message: App.Messages.Auth.Error.AccountNotFound() })
+		return res.notFound({ message: App.Messages.Auth.Error.AccountNotFound })
 	}
 
 	// Check if user is blocked by admin
@@ -39,17 +39,22 @@ export default async function SignIn(req: Request, res: Response) {
 		return res.forbidden({
 			message:
 				existingUser.accountMetadata.customBlockMessage ||
-				App.Messages.GeneralError.AccountBlockedByAdmin(),
+				App.Messages.GeneralError.AccountBlockedByAdmin,
 		})
 	}
 	if (existingUser.accountMetadata.isDeleted) {
 		return res.forbidden({
-			message: App.Messages.Auth.Error.AccountTerminated(),
+			message: App.Messages.Auth.Error.AccountTerminated,
 		})
 	}
 
 	if (email && !(await bcrypt.compare(password, existingUser.password))) {
-		return res.forbidden({ message: App.Messages.Auth.Error.InvalidCredentials() })
+		return res.forbidden({ message: App.Messages.Auth.Error.InvalidCredentials })
+	}
+
+	// Enforce verified contact before issuing token
+	if (email && !existingUser.emailVerified) {
+		return res.forbidden({ message: 'Please verify your email to sign in.' })
 	}
 
 	if (phone && countryCode) {
@@ -62,7 +67,7 @@ export default async function SignIn(req: Request, res: Response) {
 
 		if (!codeVerification) {
 			return res.badRequest({
-				message: App.Messages.Auth.Error.PreSignCodeVerificationFailed(),
+				message: App.Messages.Auth.Error.PreSignCodeVerificationFailed,
 			})
 		}
 
@@ -79,12 +84,18 @@ export default async function SignIn(req: Request, res: Response) {
 		) {
 			codeVerification.isActive = false
 			await codeVerification.save()
-			return res.forbidden({ message: App.Messages.GeneralError.SessionExpired() })
+			return res.forbidden({ message: App.Messages.GeneralError.SessionExpired })
 		}
+	}
+
+	// If signing in via phone path, ensure phone is verified
+	if (phone && countryCode && !existingUser.phoneVerified) {
+		return res.forbidden({ message: 'Please verify your phone number to sign in.' })
 	}
 
 	const tokenPromise = authAfterEffectsHelper.GenerateToken({
 		_user: existingUser._id.toString(),
+		includeRefreshToken: true, // Generate refresh token on sign-in
 	})
 
 	if (fcmToken && deviceType) {
@@ -94,17 +105,17 @@ export default async function SignIn(req: Request, res: Response) {
 
 	if (existingUser.twoFactorAuthentication.isActivated) {
 		return res.success({
-			message: App.Messages.Success.Auth.SigninSuccessfulProceedFor2FA(),
+			message: App.Messages.Auth.Success.SigninSuccessfulProceedFor2FA,
 			items: {
 				_user: existingUser._id,
 			},
 		})
 	}
 
-	const { token } = await tokenPromise
+	const { token, refreshToken } = await tokenPromise
 
 	return res.success({
-		message: App.Messages.Auth.Success.SigninSuccessful(),
-		items: { token },
+		message: App.Messages.Auth.Success.SigninSuccessful,
+		items: { token, refreshToken },
 	})
 }

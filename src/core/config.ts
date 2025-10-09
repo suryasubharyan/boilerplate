@@ -13,6 +13,7 @@ export interface ConfigInterface {
 	SALT_ROUNDS: number
 	JWT_SECRET: string
 	JWT_EXPIRY: string
+	REFRESH_TOKEN_EXPIRY: string
 
 	AWS: {
 		ACCESS_KEY_ID: string
@@ -22,6 +23,24 @@ export interface ConfigInterface {
 		BRAND_NAME: string
 		S3_BUCKET_NAME: string
 		SUPPORT_EMAIL: string
+	}
+
+	EMAIL?: {
+		PROVIDER: 'aws' | 'brevo' | 'dev'
+		FROM_EMAIL: string
+		BREVO_SMTP_HOST?: string
+		BREVO_SMTP_PORT?: number
+		BREVO_SMTP_USER?: string
+		BREVO_SMTP_PASS?: string
+	}
+
+	SMS?: {
+		PROVIDER: 'aws' | 'brevo' | 'vonage' | 'dev'
+		BREVO_API_KEY?: string
+		BREVO_SENDER?: string
+		VONAGE_API_KEY?: string
+		VONAGE_API_SECRET?: string
+		VONAGE_FROM?: string
 	}
 	CODE_VERIFICATION: {
 		LINK_TOKEN_LENGTH: number
@@ -49,6 +68,10 @@ export interface ConfigInterface {
 	}
 	CRYPTO_SECRET_KEY: string
 	MAX_FILE_SIZE: number
+
+	AUTH?: {
+		REQUIRE_PRE_SIGNUP_VERIFICATION: boolean
+	}
 }
 
 export default (): ConfigInterface => {

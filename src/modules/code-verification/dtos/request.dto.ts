@@ -52,6 +52,9 @@ export const RequestByPhoneDTO = Joi.object({
 	phone: Joi.string().min(3).max(15).required(),
 	countryCode: Joi.string().min(1).max(3).required(),
 })
+export const RequestByEmailDTO = Joi.object({
+	email: Joi.string().email().required(),
+})
 export const RequestByEmailOrPhoneDTO = Joi.object({
 	email: Joi.when(Joi.exist(), {
 		then: Joi.string().email(),

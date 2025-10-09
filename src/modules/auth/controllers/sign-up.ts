@@ -5,6 +5,9 @@ import { CodeVerificationPurpose, CodeVerificationStatus } from '@models/code-ve
 import Dayjs from 'dayjs'
 import AuthAfterEffectsHelper from '@helpers/auth-after-effects.helper'
 import { SignupDTO } from '../dto/sign-up.dto'
+import { MailHelper } from '@helpers/email.helper'
+import otpHelper from '@helpers/otp.helper'
+import { GenerateRandomNumberOfLength } from '@core/utils'
 
 export default async function Signup(req: Request, res: Response) {
 	const errors = await requestValidator(SignupDTO, req.body)
@@ -14,58 +17,65 @@ export default async function Signup(req: Request, res: Response) {
 
 	const { _codeVerification, firstName, lastName, password, location, _designation } = req.body
 
-	let email = req.body?.email
-	let phone = req.body?.phone
-	let countryCode = req.body?.countryCode
-	let existingUserCount = null
+    let email = req.body?.email
+    let phone = req.body?.phone
+    let countryCode = req.body?.countryCode
+    let existingUserCount = null
 
-	// Check the Pre-Signup Code Verification
+    const requirePreSignup = App.Config.AUTH?.REQUIRE_PRE_SIGNUP_VERIFICATION === true
 
-	const codeVerification = await App.Models.CodeVerification.findOne({
-		_id: _codeVerification,
-		status: CodeVerificationStatus.Passed,
-		purpose: CodeVerificationPurpose.PRE_SIGNUP,
-		isActive: true,
-	}).sort({ createdAt: -1 })
+    let codeVerification: any = null
+    if (_codeVerification) {
+        // Validate provided pre-signup verification record
+        codeVerification = await App.Models.CodeVerification.findOne({
+            _id: _codeVerification,
+            status: CodeVerificationStatus.Passed,
+            purpose: CodeVerificationPurpose.PRE_SIGNUP,
+            isActive: true,
+        }).sort({ createdAt: -1 })
 
-	if (!codeVerification) {
-		return res.badRequest({
-			message: App.Messages.Auth.Error.PreSignCodeVerificationFailed(),
-		})
-	}
+        if (!codeVerification) {
+            return res.badRequest({
+                message: App.Messages.Auth.Error.PreSignCodeVerificationFailed,
+            })
+        }
 
-	// get expiration config
-	const { EXPIRATION_TIME_FOR_PASSED_CODE, EXPIRATION_TIME_FOR_PASSED_CODE_UNIT } =
-		App.Config.CODE_VERIFICATION
+        const { EXPIRATION_TIME_FOR_PASSED_CODE, EXPIRATION_TIME_FOR_PASSED_CODE_UNIT } =
+            App.Config.CODE_VERIFICATION
+        if (
+            Dayjs(codeVerification.verificationPerformedAt).isBefore(
+                Dayjs().subtract(
+                    EXPIRATION_TIME_FOR_PASSED_CODE,
+                    EXPIRATION_TIME_FOR_PASSED_CODE_UNIT
+                )
+            )
+        ) {
+            codeVerification.isActive = false
+            await codeVerification.save()
+            return res.forbidden({ message: App.Messages.GeneralError.SessionExpired })
+        }
 
-	// check expiry time for passed code verification
-	if (
-		Dayjs(codeVerification.verificationPerformedAt).isBefore(
-			Dayjs().subtract(EXPIRATION_TIME_FOR_PASSED_CODE, EXPIRATION_TIME_FOR_PASSED_CODE_UNIT)
-		)
-	) {
-		codeVerification.isActive = false
-		await codeVerification.save()
-		return res.forbidden({
-			message: App.Messages.GeneralError.SessionExpired(),
-		})
-	}
-
-	if (codeVerification.email) {
-		email = codeVerification.email
-	} else if (codeVerification.phone && codeVerification.countryCode) {
-		phone = codeVerification.phone
-		countryCode = codeVerification.countryCode
-	} else {
-		throw Error(App.Messages.GeneralError.SomethingWentWrong())
-	}
+        if (codeVerification.email) {
+            email = codeVerification.email
+        } else if (codeVerification.phone && codeVerification.countryCode) {
+            phone = codeVerification.phone
+            countryCode = codeVerification.countryCode
+        } else {
+            throw Error(App.Messages.GeneralError.SomethingWentWrong)
+        }
+    } else if (requirePreSignup) {
+        // If required but not provided
+        return res.badRequest({
+            message: App.Messages.Auth.Error.PreSignCodeVerificationFailed,
+        })
+    }
 
 	// Check if { Email } is available
 	if (email) {
 		existingUserCount = await App.Models.User.findByEmail(email.trim().toLowerCase())
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.Auth.Error.EmailAlreadyInUse(),
+				message: App.Messages.Auth.Error.EmailAlreadyInUse,
 			})
 		}
 	}
@@ -75,7 +85,7 @@ export default async function Signup(req: Request, res: Response) {
 		existingUserCount = await App.Models.User.findByPhone(phone.trim(), countryCode.trim())
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.Auth.Error.PhoneAlreadyInUse(),
+				message: App.Messages.Auth.Error.PhoneAlreadyInUse,
 			})
 		}
 	}
@@ -95,22 +105,28 @@ export default async function Signup(req: Request, res: Response) {
 		)
 	)
 
-	codeVerification.isActive = false
+    if (codeVerification) {
+        codeVerification.isActive = false
+    }
 
 	// Create User Profile Doc
 	const userProfile = new App.Models.UserProfile({ _user: user._id, _designation, location })
 
-	await Promise.all([user.save(), codeVerification.save(), userProfile.save()])
+	await Promise.all([
+        user.save(),
+        codeVerification ? codeVerification.save() : Promise.resolve(),
+        userProfile.save(),
+    ])
 
-	const { token } = await AuthAfterEffectsHelper.GenerateToken({
-		_user: user._id.toString(),
-	})
-
-	// All Done
-	return res.created({
-		message: App.Messages.Auth.Success.SignupSuccessful(),
-		item: {
-			token,
-		},
-	})
+    // All Done (no token at signup)
+    // Note: User must request verification code via /code-verification/request
+    return res.created({
+        message: App.Messages.Auth.Success.SignupSuccessful,
+        item: {
+            _user: user._id,
+            email: user.email,
+            phone: user.phone,
+            message: 'Account created successfully. Please verify your email/phone using /code-verification/request'
+        },
+    })
 }

@@ -26,7 +26,7 @@ export default async function CodeVerification(req: Request, res: Response) {
 
 	if (!existingCodeVerification) {
 		return res.badRequest({
-			message: App.Messages.CodeVerification.Error.MissingRecordToVerify(),
+			message: App.Messages.CodeVerification.Error.MissingRecordToVerify,
 		})
 	}
 
@@ -38,7 +38,7 @@ export default async function CodeVerification(req: Request, res: Response) {
 		: null
 
 	if (!constructedKey) {
-		throw new Error(App.Messages.GeneralError.SomethingWentWrong())
+		throw new Error(App.Messages.GeneralError.SomethingWentWrong)
 	}
 
 	// Verify OTP code
@@ -64,12 +64,13 @@ export default async function CodeVerification(req: Request, res: Response) {
 
 		// If the purpose is SIGNIN_2FA, generate and send JWT token
 		if (existingCodeVerification.purpose === CodeVerificationPurpose.SIGNIN_2FA) {
-			const { token } = await AuthAfterEffectsHelper.GenerateToken({
+			const { token, refreshToken } = await AuthAfterEffectsHelper.GenerateToken({
 				_user: existingCodeVerification._user,
+				includeRefreshToken: true,
 			})
 			return res.success({
-				message: App.Messages.Auth.Success.SigninSuccessful(),
-				item: { token },
+				message: App.Messages.Auth.Success.SigninSuccessful,
+				item: { token, refreshToken },
 			})
 		}
 
@@ -81,16 +82,54 @@ export default async function CodeVerification(req: Request, res: Response) {
 					$set: {
 						phone: existingCodeVerification.phone,
 						countryCode: existingCodeVerification.countryCode,
+						phoneVerified: true,
 					},
 				}
 			)
+		}
+
+		// If the purpose is USER_EMAIL_UPDATE
+		if (existingCodeVerification.purpose === CodeVerificationPurpose.USER_EMAIL_UPDATE) {
+			await App.Models.User.updateOne(
+				{ _id: existingCodeVerification._user },
+				{
+					$set: {
+						email: existingCodeVerification.email.toLowerCase(),
+						emailVerified: true,
+					},
+				}
+			)
+		}
+
+		// If the purpose is PRE_SIGNUP, set verified flags
+		if (existingCodeVerification.purpose === CodeVerificationPurpose.PRE_SIGNUP) {
+			const update: any = {}
+			if (existingCodeVerification.email) update.emailVerified = true
+			if (existingCodeVerification.phone) update.phoneVerified = true
+
+			// Determine how to find the user: by _user, or fallback to email/phone
+			let userFilter: any = null
+			if (existingCodeVerification._user) {
+				userFilter = { _id: existingCodeVerification._user }
+			} else if (existingCodeVerification.email) {
+				userFilter = { email: existingCodeVerification.email.toLowerCase() }
+			} else if (existingCodeVerification.phone && existingCodeVerification.countryCode) {
+				userFilter = {
+					phone: existingCodeVerification.phone,
+					countryCode: existingCodeVerification.countryCode,
+				}
+			}
+
+			if (userFilter) {
+				await App.Models.User.updateOne(userFilter, { $set: update })
+			}
 		}
 
 		// Otherwise, send success response
 		const existingCodeVerificationJSON = existingCodeVerification.toObject()
 		delete existingCodeVerificationJSON.internalOTP
 		return res.success({
-			message: App.Messages.CodeVerification.Success.CodeVerified(),
+			message: App.Messages.CodeVerification.Success.CodeVerified,
 			item: { codeVerification: existingCodeVerificationJSON },
 		})
 	} else {
@@ -105,7 +144,7 @@ export default async function CodeVerification(req: Request, res: Response) {
 		const existingCodeVerificationJSON = existingCodeVerification.toObject()
 		delete existingCodeVerificationJSON.internalOTP
 		return res.badRequest({
-			message: App.Messages.CodeVerification.Error.CodeVerificationFailed(),
+			message: App.Messages.CodeVerification.Error.CodeVerificationFailed,
 		})
 	}
 }

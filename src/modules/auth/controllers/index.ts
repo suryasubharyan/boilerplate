@@ -3,7 +3,10 @@ import GetUserDetails from './get-user'
 import ResetPassword from './reset-password'
 import SignIn from './sign-in'
 import SignOut from './sign-out'
+import SignOutAll from './sign-out-all'
 import Signup from './sign-up'
+import RefreshToken from './refresh-token'
+import Verify2FATotp from './verify-2fa-totp'
 
 export default class AuthController {
 	AvailabilityCheck = AvailabilityCheck
@@ -12,4 +15,7 @@ export default class AuthController {
 	SignIn = SignIn
 	ResetPassword = ResetPassword
 	SignOut = SignOut
+	SignOutAll = SignOutAll
+	RefreshToken = RefreshToken
+	Verify2FATotp = Verify2FATotp
 }
