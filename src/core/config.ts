@@ -35,9 +35,12 @@ export interface ConfigInterface {
 	}
 
 	SMS?: {
-		PROVIDER: 'aws' | 'brevo' | 'dev'
+		PROVIDER: 'aws' | 'brevo' | 'vonage' | 'dev'
 		BREVO_API_KEY?: string
 		BREVO_SENDER?: string
+		VONAGE_API_KEY?: string
+		VONAGE_API_SECRET?: string
+		VONAGE_FROM?: string
 	}
 	CODE_VERIFICATION: {
 		LINK_TOKEN_LENGTH: number

@@ -48,6 +48,9 @@ export default (): ConfigInterface => {
 			PROVIDER: (process.env.SMS_PROVIDER as any) || 'dev',
 			BREVO_API_KEY: process.env.BREVO_SMS_API_KEY,
 			BREVO_SENDER: process.env.BREVO_SMS_SENDER, // e.g., "YourBrand" or verified sender name/number
+			VONAGE_API_KEY: process.env.VONAGE_API_KEY,
+			VONAGE_API_SECRET: process.env.VONAGE_API_SECRET,
+			VONAGE_FROM: process.env.VONAGE_FROM || 'Vonage APIs', // Sender name or number
 		},
 
 		CODE_VERIFICATION: {
