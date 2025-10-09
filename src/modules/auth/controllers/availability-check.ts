@@ -31,7 +31,7 @@ export default async function AvailabilityCheck(req: Request, res: Response) {
 		const isPhoneValid = Phone(`+${countryCode}${phone}`)
 		if (!isPhoneValid.isValid) {
 			return res.forbidden({
-				message: App.Messages.CodeVerification.Error.InvalidPhoneNumber,
+				message: App.Messages.CodeVerification.Error.InvalidPhoneNumber(),
 			})
 		}
 		searchField.name = 'phone'
@@ -47,7 +47,7 @@ export default async function AvailabilityCheck(req: Request, res: Response) {
 
 	// All Done
 	return res.success({
-		message: App.Messages.Auth.Success.AvailabilityCheck,
+		message: App.Messages.Auth.Success.AvailabilityCheck(),
 		item: {
 			[searchField.name]: searchField.value,
 			available: existingUserCount <= 0,

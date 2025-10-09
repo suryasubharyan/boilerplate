@@ -82,7 +82,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		// Abort if user not exists
 		if (!existingUser) {
 			return res.notFound({
-				message: App.Messages.CodeVerification.Error.UserNotExists,
+				message: App.Messages.CodeVerification.Error.UserNotExists(),
 			})
 		}
 
@@ -90,7 +90,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		if (existingUser.socialId) {
 			return res.unauthorized({
 				message:
-					App.Messages.CodeVerification.Error.ForgotPasswordSocialAccountNotAllowed,
+					App.Messages.CodeVerification.Error.ForgotPasswordSocialAccountNotAllowed(),
 			})
 		}
 
@@ -118,7 +118,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		})
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.CodeVerification.Error.PhoneAlreadyInUse,
+				message: App.Messages.CodeVerification.Error.PhoneAlreadyInUse(),
 			})
 		}
 		payload._user = user._id
@@ -140,7 +140,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		})
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.Auth.Error.EmailAlreadyInUse,
+				message: App.Messages.Auth.Error.EmailAlreadyInUse(),
 			})
 		}
 		payload._user = user._id
@@ -160,7 +160,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 		// Abort if user not exists
 		if (!existingUser) {
 			return res.forbidden({
-				message: App.Messages.Error.CodeVerification.UserNotExists,
+				message: App.Messages.Error.CodeVerification.UserNotExists(),
 			})
 		}
 		payload._user = existingUser._id
@@ -248,7 +248,7 @@ export default async function CodeVerificationRequest(req: Request, res: Respons
 
 	if (previousCodeVerificationAttempts.length >= RESEND_LIMIT_IN_SESSION) {
 		return res.tooManyRequests({
-			message: App.Messages.CodeVerification.Error.ResendLimitExceeded,
+			message: App.Messages.CodeVerification.Error.ResendLimitExceeded(),
 		})
 	}
 

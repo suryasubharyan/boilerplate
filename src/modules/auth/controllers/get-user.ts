@@ -26,7 +26,7 @@ export default async function GetUserDetails(req: Request, res: Response) {
 		const isPhoneValid = Phone(`+${countryCode}${phone}`)
 		if (!isPhoneValid.isValid) {
 			return res.forbidden({
-				message: App.Messages.CodeVerification.Error.InvalidPhoneNumber,
+				message: App.Messages.CodeVerification.Error.InvalidPhoneNumber(),
 			})
 		}
 		searchField.name = 'phone'
@@ -38,13 +38,13 @@ export default async function GetUserDetails(req: Request, res: Response) {
 
 	if (!existingUser) {
 		return res.badRequest({
-			message: App.Messages.Auth.Error.UserNotFound,
+			message: App.Messages.Auth.Error.UserNotFound(),
 		})
 	}
 
 	// All Done
 	return res.success({
-		message: App.Messages.Auth.Success.UserDetails,
+		message: App.Messages.Auth.Success.UserDetails(),
 		item: _.omitBy(
 			{
 				[searchField.name]: searchField.value,

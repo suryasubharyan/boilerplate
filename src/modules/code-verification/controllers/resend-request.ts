@@ -28,7 +28,7 @@ export default async function CodeVerificationResendRequest(req: Request, res: R
 
 	if (!codeVerification) {
 		return res.notFound({
-			message: App.Messages.CodeVerification.Error.CodeVerificationNotFound,
+			message: App.Messages.CodeVerification.Error.CodeVerificationNotFound(),
 		})
 	}
 	const OTP = '1234' //GenerateRandomNumberOfLength(4)

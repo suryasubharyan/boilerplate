@@ -44,7 +44,7 @@ export default async function SignIn(req: Request, res: Response) {
 	}
 	if (existingUser.accountMetadata.isDeleted) {
 		return res.forbidden({
-			message: App.Messages.Auth.Error.AccountTerminated,
+			message: App.Messages.Auth.Error.AccountTerminated(),
 		})
 	}
 
@@ -67,7 +67,7 @@ export default async function SignIn(req: Request, res: Response) {
 
 		if (!codeVerification) {
 			return res.badRequest({
-				message: App.Messages.Auth.Error.PreSignCodeVerificationFailed,
+				message: App.Messages.Auth.Error.PreSignCodeVerificationFailed(),
 			})
 		}
 
@@ -115,7 +115,7 @@ export default async function SignIn(req: Request, res: Response) {
 	const { token, refreshToken } = await tokenPromise
 
 	return res.success({
-		message: App.Messages.Auth.Success.SigninSuccessful,
+		message: App.Messages.Auth.Success.SigninSuccessful(),
 		items: { token, refreshToken },
 	})
 }

@@ -20,7 +20,7 @@ export default async function Get(req: Request, res: Response) {
 
 	if (!existingCodeVerification) {
 		return res.badRequest({
-			message: App.Messages.CodeVerification.Error.MissingRecordToVerify,
+			message: App.Messages.CodeVerification.Error.MissingRecordToVerify(),
 		})
 	}
 
@@ -67,7 +67,7 @@ export default async function Get(req: Request, res: Response) {
 	const existingCodeVerificationJSON = existingCodeVerification.toObject()
 	delete existingCodeVerificationJSON.verificationLinkToken
 	return res.success({
-		message: App.Messages.CodeVerification.Success.GetSuccess,
+		message: App.Messages.CodeVerification.Success.GetSuccess(),
 		item: {
 			codeVerification: existingCodeVerificationJSON,
 		},

@@ -26,7 +26,7 @@ export default async function CodeVerification(req: Request, res: Response) {
 
 	if (!existingCodeVerification) {
 		return res.badRequest({
-			message: App.Messages.CodeVerification.Error.MissingRecordToVerify,
+			message: App.Messages.CodeVerification.Error.MissingRecordToVerify(),
 		})
 	}
 
@@ -69,7 +69,7 @@ export default async function CodeVerification(req: Request, res: Response) {
 				includeRefreshToken: true,
 			})
 			return res.success({
-				message: App.Messages.Auth.Success.SigninSuccessful,
+				message: App.Messages.Auth.Success.SigninSuccessful(),
 				item: { token, refreshToken },
 			})
 		}
@@ -129,7 +129,7 @@ export default async function CodeVerification(req: Request, res: Response) {
 		const existingCodeVerificationJSON = existingCodeVerification.toObject()
 		delete existingCodeVerificationJSON.internalOTP
 		return res.success({
-			message: App.Messages.CodeVerification.Success.CodeVerified,
+			message: App.Messages.CodeVerification.Success.CodeVerified(),
 			item: { codeVerification: existingCodeVerificationJSON },
 		})
 	} else {
@@ -144,7 +144,7 @@ export default async function CodeVerification(req: Request, res: Response) {
 		const existingCodeVerificationJSON = existingCodeVerification.toObject()
 		delete existingCodeVerificationJSON.internalOTP
 		return res.badRequest({
-			message: App.Messages.CodeVerification.Error.CodeVerificationFailed,
+			message: App.Messages.CodeVerification.Error.CodeVerificationFailed(),
 		})
 	}
 }

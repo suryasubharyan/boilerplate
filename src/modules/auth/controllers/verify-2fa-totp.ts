@@ -20,14 +20,14 @@ export default async function Verify2FATotp(req: Request, res: Response) {
 
 	if (!existingUser) {
 		return res.notFound({
-			message: App.Messages.Auth.Error.AccountNotFound,
+			message: App.Messages.Auth.Error.AccountNotFound(),
 		})
 	}
 
 	// Check if account is deleted or blocked
 	if (existingUser.accountMetadata.isDeleted) {
 		return res.forbidden({
-			message: App.Messages.Auth.Error.AccountTerminated,
+			message: App.Messages.Auth.Error.AccountTerminated(),
 		})
 	}
 
@@ -74,7 +74,7 @@ export default async function Verify2FATotp(req: Request, res: Response) {
 
 	// All Done
 	return res.success({
-		message: App.Messages.Auth.Success.SigninSuccessful,
+		message: App.Messages.Auth.Success.SigninSuccessful(),
 		items: { token: accessToken, refreshToken },
 	})
 }

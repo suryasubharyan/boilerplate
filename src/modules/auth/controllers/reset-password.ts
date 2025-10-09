@@ -60,7 +60,7 @@ export default async function ResetPassword(req: Request, res: Response) {
 		existingCodeVerification.isActive = false
 		await existingCodeVerification.save()
 		return res.forbidden({
-			message: App.Messages.Error.GeneralError.SessionExpired,
+			message: App.Messages.Error.GeneralError.SessionExpired(),
 		})
 	}
 
@@ -80,7 +80,7 @@ export default async function ResetPassword(req: Request, res: Response) {
 
 	// All Done
 	return res.success({
-		message: App.Messages.Auth.Success.ResetPasswordSuccessful,
+		message: App.Messages.Auth.Success.ResetPasswordSuccessful(),
 		items: { token: authToken.token },
 	})
 }

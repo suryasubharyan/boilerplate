@@ -36,7 +36,7 @@ export default async function Signup(req: Request, res: Response) {
 
         if (!codeVerification) {
             return res.badRequest({
-                message: App.Messages.Auth.Error.PreSignCodeVerificationFailed,
+                message: App.Messages.Auth.Error.PreSignCodeVerificationFailed(),
             })
         }
 
@@ -66,7 +66,7 @@ export default async function Signup(req: Request, res: Response) {
     } else if (requirePreSignup) {
         // If required but not provided
         return res.badRequest({
-            message: App.Messages.Auth.Error.PreSignCodeVerificationFailed,
+            message: App.Messages.Auth.Error.PreSignCodeVerificationFailed(),
         })
     }
 
@@ -75,7 +75,7 @@ export default async function Signup(req: Request, res: Response) {
 		existingUserCount = await App.Models.User.findByEmail(email.trim().toLowerCase())
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.Auth.Error.EmailAlreadyInUse,
+				message: App.Messages.Auth.Error.EmailAlreadyInUse(),
 			})
 		}
 	}
@@ -85,7 +85,7 @@ export default async function Signup(req: Request, res: Response) {
 		existingUserCount = await App.Models.User.findByPhone(phone.trim(), countryCode.trim())
 		if (existingUserCount) {
 			return res.conflict({
-				message: App.Messages.Auth.Error.PhoneAlreadyInUse,
+				message: App.Messages.Auth.Error.PhoneAlreadyInUse(),
 			})
 		}
 	}
@@ -121,7 +121,7 @@ export default async function Signup(req: Request, res: Response) {
     // All Done (no token at signup)
     // Note: User must request verification code via /code-verification/request
     return res.created({
-        message: App.Messages.Auth.Success.SignupSuccessful,
+        message: App.Messages.Auth.Success.SignupSuccessful(),
         item: {
             _user: user._id,
             email: user.email,

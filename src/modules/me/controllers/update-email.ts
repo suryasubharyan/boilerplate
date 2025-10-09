@@ -24,7 +24,7 @@ export default async function UpdateEmail(req: Request, res: Response) {
 
 	if (existingUserCount) {
 		return res.conflict({
-			message: App.Messages.Auth.Error.EmailAlreadyInUse,
+			message: App.Messages.Auth.Error.EmailAlreadyInUse(),
 		})
 	}
 

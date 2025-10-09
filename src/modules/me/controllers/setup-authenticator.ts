@@ -14,7 +14,7 @@ export default async function SetupAuthenticator(req: Request, res: Response) {
 
 	if (existingUser.accountMetadata.isDeleted) {
 		return res.forbidden({
-			message: App.Messages.Auth.Error.AccountTerminated,
+			message: App.Messages.Auth.Error.AccountTerminated(),
 		})
 	}
 

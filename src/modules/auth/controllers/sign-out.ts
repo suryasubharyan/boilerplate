@@ -20,7 +20,7 @@ export default async function SignOut(req: Request, res: Response) {
 
 	if (!existingUser) {
 		return res.forbidden({
-			message: App.Messages.Auth.Error.UserNotExists,
+			message: App.Messages.Auth.Error.UserNotExists(),
 		})
 	}
 
@@ -39,6 +39,6 @@ export default async function SignOut(req: Request, res: Response) {
 
 	// All Done
 	return res.success({
-		message: App.Messages.Auth.Success.SignOutSuccessful,
+		message: App.Messages.Auth.Success.SignOutSuccessful(),
 	})
 }

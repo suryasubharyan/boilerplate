@@ -25,7 +25,7 @@ export default async function UpdatePhone(req: Request, res: Response) {
 
 	if (existingUserCount) {
 		return res.conflict({
-			message: App.Messages.CodeVerification.Error.PhoneAlreadyInUse,
+			message: App.Messages.CodeVerification.Error.PhoneAlreadyInUse(),
 		})
 	}
 

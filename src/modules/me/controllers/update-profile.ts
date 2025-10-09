@@ -23,7 +23,7 @@ export default async function UpdateProfile(req: Request, res: Response) {
 	// Check if account is deleted
 	if (existingUser.accountMetadata.isDeleted) {
 		return res.forbidden({
-			message: App.Messages.Auth.Error.AccountTerminated,
+			message: App.Messages.Auth.Error.AccountTerminated(),
 		})
 	}
 
