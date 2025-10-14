@@ -5,7 +5,9 @@ import JWTHelper from '@helpers/jwt.helper'
 export const authorize = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		if (!req.headers.authorization) {
-			return res.unauthorized()
+			return res.unauthorized({
+				message: 'Authorization token is required. Please provide a valid access token.',
+			})
 		}
 		const token = req.headers.authorization.split(' ')[1]
 
@@ -22,7 +24,9 @@ export const authorize = async (req: Request, res: Response, next: NextFunction)
 		const response = await JWTHelper.GetUser({ token })
 
 		if (!response) {
-			return res.unauthorized()
+			return res.unauthorized({
+				message: 'Invalid or expired token. Please sign in again.',
+			})
 		}
 
 		if (response.error) {
@@ -35,7 +39,9 @@ export const authorize = async (req: Request, res: Response, next: NextFunction)
 
 		// Check if user exists
 		if (!user) {
-			return res.unauthorized()
+			return res.unauthorized({
+				message: 'User not found. Please sign in again.',
+			})
 		}
 
 		// Check if user is blocked by admin

@@ -1,5 +1,6 @@
 import Joi from 'joi'
 import { RoomType } from '@models/room.model'
+import objectIdValidatorHelper from '@helpers/object-id-validator.helper'
 
 export const CreateRoomDTO = Joi.object({
 	name: Joi.string().min(1).max(100).required().messages({
@@ -21,24 +22,36 @@ export const CreateRoomDTO = Joi.object({
 })
 
 export const JoinRoomDTO = Joi.object({
-	roomId: Joi.string().required().messages({
-		'string.empty': 'Room ID is required.',
-	}),
+	roomId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'Room ID is required.',
+		}),
 })
 
 export const LeaveRoomDTO = Joi.object({
-	roomId: Joi.string().required().messages({
-		'string.empty': 'Room ID is required.',
-	}),
+	roomId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'Room ID is required.',
+		}),
 })
 
 export const InviteUserDTO = Joi.object({
-	roomId: Joi.string().required().messages({
-		'string.empty': 'Room ID is required.',
-	}),
-	userId: Joi.string().required().messages({
-		'string.empty': 'User ID is required.',
-	}),
+	roomId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'Room ID is required.',
+		}),
+	userId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'User ID is required.',
+		}),
 	expiresInHours: Joi.number().min(1).max(168).optional().messages({
 		'number.min': 'Expiration must be at least 1 hour.',
 		'number.max': 'Expiration cannot exceed 168 hours (7 days).',
@@ -46,15 +59,21 @@ export const InviteUserDTO = Joi.object({
 })
 
 export const AcceptInvitationDTO = Joi.object({
-	roomId: Joi.string().required().messages({
-		'string.empty': 'Room ID is required.',
-	}),
+	roomId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'Room ID is required.',
+		}),
 })
 
 export const DeclineInvitationDTO = Joi.object({
-	roomId: Joi.string().required().messages({
-		'string.empty': 'Room ID is required.',
-	}),
+	roomId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'Room ID is required.',
+		}),
 })
 
 export const UpdateRoomDTO = Joi.object({
@@ -73,23 +92,35 @@ export const UpdateRoomDTO = Joi.object({
 })
 
 export const RemoveMemberDTO = Joi.object({
-	roomId: Joi.string().required().messages({
-		'string.empty': 'Room ID is required.',
-	}),
-	userId: Joi.string().required().messages({
-		'string.empty': 'User ID is required.',
-	}),
+	roomId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'Room ID is required.',
+		}),
+	userId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'User ID is required.',
+		}),
 })
 
 export const ChangeMemberRoleDTO = Joi.object({
-	roomId: Joi.string().required().messages({
-		'string.empty': 'Room ID is required.',
-	}),
-	userId: Joi.string().required().messages({
-		'string.empty': 'User ID is required.',
-	}),
-	role: Joi.string().valid('ADMIN', 'MEMBER').required().messages({
-		'any.only': 'Role must be either ADMIN or MEMBER.',
+	roomId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'Room ID is required.',
+		}),
+	userId: Joi.string()
+		.required()
+		.custom(objectIdValidatorHelper.Validate, 'ObjectId Validation')
+		.messages({
+			'string.empty': 'User ID is required.',
+		}),
+	role: Joi.string().valid('ADMIN', 'MODERATOR', 'MEMBER').required().messages({
+		'any.only': 'Role must be one of: ADMIN, MODERATOR, or MEMBER.',
 	}),
 })
 

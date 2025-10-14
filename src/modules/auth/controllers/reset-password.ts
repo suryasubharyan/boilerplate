@@ -25,7 +25,9 @@ export default async function ResetPassword(req: Request, res: Response) {
 		.sort({ _id: -1 })
 
 	if (!existingCodeVerification) {
-		return res.forbidden()
+		return res.forbidden({
+			message: 'Invalid or expired password reset code. Please request a new code.',
+		})
 	}
 
 	const { email, phone, countryCode } = existingCodeVerification
@@ -44,7 +46,9 @@ export default async function ResetPassword(req: Request, res: Response) {
 	}
 
 	if (!existingUser) {
-		return res.forbidden()
+		return res.notFound({
+			message: App.Messages.Auth.Error.AccountNotFound,
+		})
 	}
 
 	// get expiration config

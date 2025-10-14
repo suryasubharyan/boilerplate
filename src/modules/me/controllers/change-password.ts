@@ -30,7 +30,7 @@ export default async function ChangePassword(req: Request, res: Response) {
 	// Verify old password
 	const isOldPasswordValid = await bcrypt.compare(oldPassword, existingUser.password)
 	if (!isOldPasswordValid) {
-		return res.forbidden({ message: App.Messages.Auth.Error.InvalidCredentials })
+		return res.forbidden({ message: App.Messages.Auth.Error.InvalidCredentials() })
 	}
 
 	// Check if new password is same as old password

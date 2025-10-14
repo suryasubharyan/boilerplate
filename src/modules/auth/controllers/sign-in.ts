@@ -49,7 +49,7 @@ export default async function SignIn(req: Request, res: Response) {
 	}
 
 	if (email && !(await bcrypt.compare(password, existingUser.password))) {
-		return res.forbidden({ message: App.Messages.Auth.Error.InvalidCredentials })
+		return res.forbidden({ message: App.Messages.Auth.Error.InvalidCredentials() })
 	}
 
 	// Enforce verified contact before issuing token

@@ -121,8 +121,10 @@ export class Application {
 		})
 
 		// Handle the 404 errors
-		this.app.use((_req: Request, res: Response) => {
-			return res.notFound()
+		this.app.use((req: Request, res: Response) => {
+			return res.notFound({
+				message: `Endpoint not found: ${req.method} ${req.path}`,
+			})
 		})
 	}
 

@@ -89,6 +89,13 @@ export default async function initializeSocket(server) {
 						})
 					}
 
+					// 🔒 Edge Case Fix: Check room status
+					if (room.status !== 'ACTIVE') {
+						return socket.emit(SocketEvents.Error, {
+							error: { message: 'Room is not active.', statusCode: 403 }
+						})
+					}
+
 					if (!room.isMember(socketUser)) {
 						return socket.emit(SocketEvents.Error, {
 							error: { message: 'You are not a member of this room.', statusCode: 403 }
@@ -157,6 +164,13 @@ export default async function initializeSocket(server) {
 					if (!room) {
 						return socket.emit(SocketEvents.Error, {
 							error: { message: 'Room not found.', statusCode: 404 }
+						})
+					}
+
+					// 🔒 Edge Case Fix: Check room status
+					if (room.status !== 'ACTIVE') {
+						return socket.emit(SocketEvents.Error, {
+							error: { message: 'Room is not active. Cannot send messages.', statusCode: 403 }
 						})
 					}
 

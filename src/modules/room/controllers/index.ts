@@ -183,6 +183,13 @@ export default class RoomController {
 				})
 			}
 
+			// 🔒 Security Fix: Prevent self-invitation
+			if (userId === user._id.toString()) {
+				return res.badRequest({
+					message: 'You cannot invite yourself.',
+				})
+			}
+
 			const invitedUser = await App.Models.User.findById(userId)
 			if (!invitedUser) {
 				return res.notFound({
@@ -228,6 +235,14 @@ export default class RoomController {
 			if (!room) {
 				return res.notFound({
 					message: 'Room not found.',
+				})
+			}
+
+			// 🔒 Edge Case Fix: Check room capacity before accepting
+			const activeMembers = room.members.filter((m: any) => m.isActive).length
+			if (activeMembers >= room.maxMembers) {
+				return res.badRequest({
+					message: 'Room is at maximum capacity. Cannot accept invitation.',
 				})
 			}
 
@@ -315,6 +330,16 @@ export default class RoomController {
 				return res.forbidden({
 					message: 'Only room admins can update room details.',
 				})
+			}
+
+			// 🔒 Edge Case Fix: Validate maxMembers against current member count
+			if (updateData.maxMembers !== undefined) {
+				const activeMembers = room.members.filter((m: any) => m.isActive).length
+				if (updateData.maxMembers < activeMembers) {
+					return res.badRequest({
+						message: `Cannot set maxMembers to ${updateData.maxMembers}. Room currently has ${activeMembers} active members.`,
+					})
+				}
 			}
 
 			Object.assign(room, updateData)
@@ -420,6 +445,19 @@ export default class RoomController {
 				return res.badRequest({
 					message: 'User is not a member of this room.',
 				})
+			}
+
+			// 🔒 Edge Case Fix: Prevent last admin from demoting themselves
+			if (userId === user._id.toString() && member.role === 'ADMIN' && role !== 'ADMIN') {
+				const adminCount = room.members.filter(
+					(m: any) => m.isActive && m.role === 'ADMIN'
+				).length
+				
+				if (adminCount <= 1) {
+					return res.badRequest({
+						message: 'Cannot demote yourself. You are the last admin of this room. Promote another member to admin first.',
+					})
+				}
 			}
 
 			member.role = role

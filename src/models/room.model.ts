@@ -19,7 +19,7 @@ export enum RoomStatus {
 
 export interface IRoomMember {
 	userId: any
-	role: 'ADMIN' | 'MEMBER'
+	role: 'ADMIN' | 'MODERATOR' | 'MEMBER'
 	joinedAt: Date
 	isActive: boolean
 }
@@ -51,7 +51,7 @@ export interface IRoom extends IBaseModel {
 
 const roomMemberSchema = new Schema({
 	userId: { type: ObjectId, ref: Models.User, required: true },
-	role: { type: String, enum: ['ADMIN', 'MEMBER'], default: 'MEMBER' },
+	role: { type: String, enum: ['ADMIN', 'MODERATOR', 'MEMBER'], default: 'MEMBER' },
 	joinedAt: { type: Date, default: Date.now },
 	isActive: { type: Boolean, default: true },
 })
@@ -126,7 +126,7 @@ roomSchema.statics.findUserRooms = function(userId: any, options: any = {}) {
 }
 
 // Instance methods
-roomSchema.methods.addMember = function(userId: any, role: 'ADMIN' | 'MEMBER' = 'MEMBER') {
+roomSchema.methods.addMember = function(userId: any, role: 'ADMIN' | 'MODERATOR' | 'MEMBER' = 'MEMBER') {
 	const existingMember = this.members.find(
 		(member: IRoomMember) => member.userId.toString() === userId.toString()
 	)
