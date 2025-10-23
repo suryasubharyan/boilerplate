@@ -262,6 +262,10 @@
                 log(`👤 Member left: ${JSON.stringify(data, null, 2)}`, 'success');
             });
 
+            socket.on('room_member_disconnected', (data) => {
+                log(`🔴 Member disconnected: ${JSON.stringify(data, null, 2)}`, 'warning');
+            });
+
             socket.on('room_typing', (data) => {
                 log(`⌨️ User typing: ${JSON.stringify(data, null, 2)}`, 'info');
             });

@@ -6,6 +6,7 @@ import authAfterEffectsHelper from '@helpers/auth-after-effects.helper'
 import { SignInDTO } from '../dto/sign-in.dto'
 import { CodeVerificationStatus, CodeVerificationPurpose } from '@models/code-verification'
 import Dayjs from 'dayjs'
+import { NotificationHelper, NotificationType } from '@helpers/notification.helper'
 
 export default async function SignIn(req: Request, res: Response) {
 	const errors = await requestValidator(SignInDTO, req.body)
@@ -113,6 +114,26 @@ export default async function SignIn(req: Request, res: Response) {
 	}
 
 	const { token, refreshToken } = await tokenPromise
+
+	// Create login notification for new device
+	if (fcmToken && deviceType) {
+		try {
+			await NotificationHelper.createAuthNotification(
+				existingUser._id.toString(),
+				NotificationType.AUTH_LOGIN_NEW_DEVICE,
+				'New Device Login',
+				`You've signed in from a new ${deviceType} device`,
+				{ 
+					deviceType, 
+					fcmToken: fcmToken.substring(0, 10) + '...', // Partial token for privacy
+					loginTime: new Date(),
+					ipAddress: req.ip || req.connection.remoteAddress
+				}
+			)
+		} catch (notifError) {
+			Logger.error(`Failed to create login notification: ${notifError.message}`)
+		}
+	}
 
 	return res.success({
 		message: App.Messages.Auth.Success.SigninSuccessful(),

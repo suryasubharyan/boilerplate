@@ -5,6 +5,7 @@ import { CodeVerificationPurpose, CodeVerificationStatus } from '@models/code-ve
 import Dayjs from 'dayjs'
 import { Request, Response } from 'express'
 import { ResetPasswordDTO } from '../dto/reset-password.dto'
+import { NotificationHelper, NotificationType } from '@helpers/notification.helper'
 
 export default async function ResetPassword(req: Request, res: Response) {
 	const errors = await requestValidator(ResetPasswordDTO, req.body)
@@ -81,6 +82,23 @@ export default async function ResetPassword(req: Request, res: Response) {
 		existingUser.save(),
 		existingCodeVerification.save(),
 	])
+
+	// Create password reset notification
+	try {
+		await NotificationHelper.createAuthNotification(
+			existingUser._id.toString(),
+			NotificationType.AUTH_PASSWORD_RESET,
+			'Password Reset',
+			'Your password has been successfully reset',
+			{ 
+				resetTime: new Date(),
+				ipAddress: req.ip || req.connection.remoteAddress,
+				via: existingCodeVerification.email ? 'email' : 'phone'
+			}
+		)
+	} catch (notifError) {
+		Logger.error(`Failed to create password reset notification: ${notifError.message}`)
+	}
 
 	// All Done
 	return res.success({

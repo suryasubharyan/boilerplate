@@ -10,9 +10,17 @@ class NotificationServices {
 
 	GetAll = async (payload, _user: string) => {
 		const { itemsPerPage, startIndex, type } = payload
+		
+		// Build query for both user-specific and room-based notifications
 		const searchFields = _.omitBy(
 			{
-				_user,
+				$or: [
+					{ _user }, // User-specific notifications
+					{ 
+						_room: { $exists: true }, // Room-based notifications
+						'metaData.affectedUserIds': _user // User is affected by this room notification
+					}
+				],
 				isDeleted: false,
 			},
 			_.isNil
@@ -21,10 +29,12 @@ class NotificationServices {
 		if (payload.type === 'unread') {
 			searchFields.isRead = false
 		}
+		
 		const query = await regexQueryGeneratorHelper.Generate({
 			searchFields,
-			excludeRegex: ['_user', 'isRead', 'isDeleted'],
+			excludeRegex: ['_user', '_room', 'isRead', 'isDeleted', 'metaData.affectedUserIds'],
 		})
+		
 		const paginationOptions = {
 			model: this.model,
 			query,
@@ -34,7 +44,10 @@ class NotificationServices {
 				isRead: 1,
 				createdAt: 1,
 				readAt: 1,
-				metadata: 1,
+				metaData: 1,
+				_user: 1,
+				_room: 1,
+				redirectionUrl: 1,
 			},
 			startIndex: Number(startIndex) || 1,
 			itemsPerPage: Number(itemsPerPage) || 10,
@@ -45,10 +58,16 @@ class NotificationServices {
 	}
 
 	UnreadCount = async (_user) => {
-		const filterQuery: { isDeleted: boolean; isRead: boolean; _user: string } = {
-			_user,
-			isDeleted: false,
-			isRead: false,
+		const filterQuery = {
+			$or: [
+				{ _user, isDeleted: false, isRead: false }, // User-specific notifications
+				{ 
+					_room: { $exists: true }, // Room-based notifications
+					'metaData.affectedUserIds': _user, // User is affected by this room notification
+					isDeleted: false,
+					isRead: false
+				}
+			]
 		}
 		const data = await this.model.countDocuments(filterQuery)
 		return data.toString()
@@ -58,14 +77,34 @@ class NotificationServices {
 		const { isMarkAll = false, _notification } = payload
 		let data = null
 		if (isMarkAll) {
+			// Mark all notifications as read for this user (both user-specific and room-based)
 			data = await this.model.updateMany(
-				{ _user, isDeleted: false },
+				{
+					$or: [
+						{ _user, isDeleted: false }, // User-specific notifications
+						{ 
+							_room: { $exists: true }, // Room-based notifications
+							'metaData.affectedUserIds': _user,
+							isDeleted: false
+						}
+					]
+				},
 				{ isRead: true, readAt: Date.now() }
-				// { new: true }
 			)
 		} else {
+			// Mark specific notification as read
 			data = await this.model.findOneAndUpdate(
-				{ _id: _notification, isDeleted: false },
+				{ 
+					_id: _notification, 
+					isDeleted: false,
+					$or: [
+						{ _user }, // User-specific notification
+						{ 
+							_room: { $exists: true }, // Room-based notification
+							'metaData.affectedUserIds': _user
+						}
+					]
+				},
 				{ isRead: true, readAt: Date.now() },
 				{ new: true }
 			)
@@ -90,14 +129,34 @@ class NotificationServices {
 
 			let data = null
 			if (isRemoveAll) {
+				// Remove all notifications for this user (both user-specific and room-based)
 				data = await this.model.updateMany(
-					{ _user, isDeleted: false },
+					{
+						$or: [
+							{ _user, isDeleted: false }, // User-specific notifications
+							{ 
+								_room: { $exists: true }, // Room-based notifications
+								'metaData.affectedUserIds': _user,
+								isDeleted: false
+							}
+						]
+					},
 					{ $set: { isDeleted: true } }
-					// { new: true }
 				)
 			} else {
+				// Remove specific notification
 				data = await this.model.findOneAndUpdate(
-					{ _id: _notification, isDeleted: false },
+					{ 
+						_id: _notification, 
+						isDeleted: false,
+						$or: [
+							{ _user }, // User-specific notification
+							{ 
+								_room: { $exists: true }, // Room-based notification
+								'metaData.affectedUserIds': _user
+							}
+						]
+					},
 					{ $set: { isDeleted: true } },
 					{ new: true }
 				)

@@ -6,6 +6,7 @@ import requestValidator from './request-validator.helper'
 import { MarkAsReadDTO } from '@modules/notification/dtos/mark-as-read.dto'
 import { RemoveNotiDTO } from '@modules/notification/dtos/remove.dto'
 import { GetAllDTO } from '@modules/notification/dtos/get-all'
+import { NotificationHelper, NotificationType } from './notification.helper'
 
 enum SocketEvents {
 	//Listeners
@@ -21,6 +22,7 @@ enum SocketEvents {
 	RoomInvite = 'room_invite',
 	RoomMemberJoined = 'room_member_joined',
 	RoomMemberLeft = 'room_member_left',
+	RoomMemberDisconnected = 'room_member_disconnected',
 	RoomUpdated = 'room_updated',
 
 	//Emitters
@@ -55,10 +57,19 @@ export default async function initializeSocket(server) {
 			},
 			// path: App.Config.SOCKET_PATH
 		})
+		
+		// Track which rooms each user is in
+		const userRooms = new Map<string, Set<string>>()
+		
 		io.use(authenticateSocket)
 		io.on(SocketEvents.Connection, async (socket: any) => {
 			Logger.info(`User Connected | ${socket.id}`)
 			const socketUser = socket.id
+			
+			// Initialize room tracking for this user
+			if (!userRooms.has(socketUser)) {
+				userRooms.set(socketUser, new Set())
+			}
 
 			// JOIN USER
 			socket.on(SocketEvents.Join, async (payload: ISocketNotiReqObj) => {
@@ -102,17 +113,35 @@ export default async function initializeSocket(server) {
 						})
 					}
 
-					socket.join(roomId)
-					socket.emit('room_joined', { roomId, message: 'Successfully joined room' })
-					
-					// Notify other room members
-					socket.to(roomId).emit(SocketEvents.RoomMemberJoined, {
-						roomId,
-						userId: socketUser,
-						message: 'User joined the room'
-					})
+				socket.join(roomId)
+				
+				// Track that user is in this room
+				userRooms.get(socketUser)?.add(roomId)
+				
+				socket.emit('room_joined', { roomId, message: 'Successfully joined room' })
+				
+				// Notify other room members via Socket.IO
+				socket.to(roomId).emit(SocketEvents.RoomMemberJoined, {
+					roomId,
+					userId: socketUser,
+					message: 'User joined the room'
+				})
 
-					Logger.info(`User ${socketUser} joined room ${roomId}`)
+				// Create database notifications for offline members
+				try {
+					await NotificationHelper.createRoomNotification(
+						roomId,
+						socketUser,
+						NotificationType.ROOM_MEMBER_JOINED,
+						'New Member Joined',
+						'A new member has joined the room',
+						{ joinedUserId: socketUser }
+					)
+				} catch (notifError) {
+					Logger.error(`Failed to create join notification: ${notifError.message}`)
+				}
+
+				Logger.info(`User ${socketUser} joined room ${roomId}`)
 				} catch (error) {
 					Logger.error(error)
 					socket.emit(SocketEvents.Error, {
@@ -131,17 +160,35 @@ export default async function initializeSocket(server) {
 						})
 					}
 
-					socket.leave(roomId)
-					socket.emit('room_left', { roomId, message: 'Successfully left room' })
-					
-					// Notify other room members
-					socket.to(roomId).emit(SocketEvents.RoomMemberLeft, {
-						roomId,
-						userId: socketUser,
-						message: 'User left the room'
-					})
+				socket.leave(roomId)
+				
+				// Remove tracking for this room
+				userRooms.get(socketUser)?.delete(roomId)
+				
+				socket.emit('room_left', { roomId, message: 'Successfully left room' })
+				
+				// Notify other room members via Socket.IO
+				socket.to(roomId).emit(SocketEvents.RoomMemberLeft, {
+					roomId,
+					userId: socketUser,
+					message: 'User left the room'
+				})
 
-					Logger.info(`User ${socketUser} left room ${roomId}`)
+				// Create database notifications for offline members
+				try {
+					await NotificationHelper.createRoomNotification(
+						roomId,
+						socketUser,
+						NotificationType.ROOM_MEMBER_LEFT,
+						'Member Left Room',
+						'A member has left the room',
+						{ leftUserId: socketUser }
+					)
+				} catch (notifError) {
+					Logger.error(`Failed to create leave notification: ${notifError.message}`)
+				}
+
+				Logger.info(`User ${socketUser} left room ${roomId}`)
 				} catch (error) {
 					Logger.error(error)
 					socket.emit(SocketEvents.Error, {
@@ -189,16 +236,16 @@ export default async function initializeSocket(server) {
 				room.metadata.messageCount = (room.metadata.messageCount || 0) + 1
 				await room.save()
 
-					// Broadcast message to all room members
-					io.to(roomId).emit('room_message_received', {
-						roomId,
-						userId: socketUser,
-						message,
-						timestamp: new Date(),
-						messageId: new Date().getTime().toString() // Simple message ID
-					})
+				// Broadcast message to all room members via Socket.IO
+				io.to(roomId).emit('room_message_received', {
+					roomId,
+					userId: socketUser,
+					message,
+					timestamp: new Date(),
+					messageId: new Date().getTime().toString() // Simple message ID
+				})
 
-					Logger.info(`Message sent in room ${roomId} by user ${socketUser}`)
+				Logger.info(`Message sent in room ${roomId} by user ${socketUser}`)
 				} catch (error) {
 					Logger.error(error)
 					socket.emit(SocketEvents.Error, {
@@ -379,10 +426,44 @@ export default async function initializeSocket(server) {
 				}
 			})
 
-			// DISCONNECT USER
-			socket.on(SocketEvents.Disconnect, () => {
-				Logger.warn(`User Disconnected | ${socketUser}`)
-			})
+		// DISCONNECT USER
+		socket.on(SocketEvents.Disconnect, async () => {
+			Logger.warn(`User Disconnected | ${socketUser}`)
+			
+			// Notify all rooms this user was in about the disconnect
+			if (userRooms.has(socketUser)) {
+				const rooms = userRooms.get(socketUser)
+				if (rooms && rooms.size > 0) {
+					rooms.forEach(async (roomId) => {
+						// Socket.IO notification (real-time)
+						socket.to(roomId).emit(SocketEvents.RoomMemberDisconnected, {
+							roomId,
+							userId: socketUser,
+							message: 'User disconnected',
+							timestamp: new Date(),
+						})
+						
+						// Database notification (persistent)
+						try {
+							await NotificationHelper.createRoomNotification(
+								roomId,
+								socketUser,
+								NotificationType.ROOM_MEMBER_DISCONNECTED,
+								'Member Disconnected',
+								'A member has disconnected from the room',
+								{ disconnectedUserId: socketUser, timestamp: new Date() }
+							)
+						} catch (notifError) {
+							Logger.error(`Failed to create disconnect notification: ${notifError.message}`)
+						}
+						
+						Logger.info(`Notified room ${roomId} about ${socketUser} disconnection`)
+					})
+				}
+				// Clean up tracking
+				userRooms.delete(socketUser)
+			}
+		})
 		})
 	} catch (error) {
 		Logger.error(error)
