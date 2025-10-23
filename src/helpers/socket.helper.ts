@@ -180,11 +180,14 @@ export default async function initializeSocket(server) {
 						})
 					}
 
-					// Update room metadata
-					room.metadata.lastMessageAt = new Date()
-					room.metadata.lastMessageBy = socketUser
-					room.metadata.messageCount = (room.metadata.messageCount || 0) + 1
-					await room.save()
+				// Update room metadata
+				if (!room.metadata) {
+					room.metadata = {}
+				}
+				room.metadata.lastMessageAt = new Date()
+				room.metadata.lastMessageBy = socketUser
+				room.metadata.messageCount = (room.metadata.messageCount || 0) + 1
+				await room.save()
 
 					// Broadcast message to all room members
 					io.to(roomId).emit('room_message_received', {
