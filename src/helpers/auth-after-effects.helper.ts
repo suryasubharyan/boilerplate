@@ -14,6 +14,7 @@ export class AuthAfterEffectsHelper {
 		const token = JWTHelper.GenerateToken({
 			_id: existingUser._id.toString(),
 			_tokenVersion: existingUser.tokenVersion,
+			email: existingUser.email,
 		})
 
 		existingUser.lastSigninAt = Date.now()

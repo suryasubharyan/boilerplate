@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tic-Tac-Toe Test</title>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+  <h2>Tic Tac Toe Socket Test</h2>
+  <input id="roomId" placeholder="Room ID" />
+  <button onclick="createRoom()">Create Room</button>
+  <button onclick="joinRoom()">Join Room</button>
+  <div id="board"></div>
+
+  <script>
+    const socket = io('http://localhost:5000/tic-tac-toe')
+
+    socket.on('connect', () => {
+      console.log('Connected:', socket.id)
+    })
+
+    socket.on('room-created', (data) => console.log('Room created:', data))
+    socket.on('player-joined', (data) => console.log('Player joined:', data))
+    socket.on('update-board', (board) => {
+      console.log('Board updated:', board)
+      document.getElementById('board').innerText = board.join(' ')
+    })
+
+    function createRoom() {
+      const roomId = document.getElementById('roomId').value
+      socket.emit('create-room', roomId)
+    }
+
+    function joinRoom() {
+      const roomId = document.getElementById('roomId').value
+      socket.emit('join-room', roomId)
+    }
+
+    // Example: make a move
+    function makeMove(index) {
+      const roomId = document.getElementById('roomId').value
+      socket.emit('make-move', { roomId, index })
+    }
+  </script>
+</body>
+</html>

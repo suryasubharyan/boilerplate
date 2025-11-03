@@ -77,7 +77,7 @@ class JWTHelper {
 	 * @returns token
 	 */
 	GenerateToken(payload: any): string {
-		const { _id: _user } = payload
+		const { _id: _user,  } = payload
 
 		const privateKey = readFileSync(this.privateKeyPath)
 
@@ -85,6 +85,7 @@ class JWTHelper {
 			roles: payload.roles,
 			// include user tokenVersion for logout-all support
 			// will be filled by caller if needed
+			email: payload.email,
 			_tokenVersion: payload._tokenVersion,
 		}
 		return jwt.sign(

@@ -7,6 +7,7 @@ import { codeVerificationRouter } from '@modules/code-verification/routes'
 import { meRouter } from '@modules/me/routes'
 import roomRouter from '@modules/room/routes'
 import { authorize } from '@middlewares/authorizer'
+console.log('✅ AppRoutes loaded')
 
 const rateLimiter = RateLimit({
 	windowMs: 60 * 1000 * 1, // Time window of 1 minute

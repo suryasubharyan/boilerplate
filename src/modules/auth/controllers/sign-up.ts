@@ -22,8 +22,7 @@ export default async function Signup(req: Request, res: Response) {
     let countryCode = req.body?.countryCode
     let existingUserCount = null
 
-    const requirePreSignup = App.Config.AUTH?.REQUIRE_PRE_SIGNUP_VERIFICATION === true
-
+    const requirePreSignup = false
     let codeVerification: any = null
     if (_codeVerification) {
         // Validate provided pre-signup verification record

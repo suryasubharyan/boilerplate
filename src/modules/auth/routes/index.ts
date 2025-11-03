@@ -5,6 +5,8 @@ import { authorize } from '@middlewares/authorizer'
 
 const router = Router()
 const controller = new AuthController()
+console.log('✅ AuthRouter loaded') 
+
 
 router.get('/signup.availability-check', Wrap(controller.AvailabilityCheck))
 router.get('/user-details', Wrap(controller.GetUserDetails))

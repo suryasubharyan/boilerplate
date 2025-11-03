@@ -7,6 +7,7 @@ import { MarkAsReadDTO } from '@modules/notification/dtos/mark-as-read.dto'
 import { RemoveNotiDTO } from '@modules/notification/dtos/remove.dto'
 import { GetAllDTO } from '@modules/notification/dtos/get-all'
 import { NotificationHelper, NotificationType } from './notification.helper'
+import registerTicTacToe from '@modules/tic-tac-toe/socket-handler'
 
 enum SocketEvents {
 	//Listeners
@@ -53,7 +54,8 @@ export default async function initializeSocket(server) {
 	try {
 		const io = new Server(server, {
 			cors: {
-				origin: '*',
+				origin: 'http://localhost:5173',
+				methods: ['GET', 'POST'],
 			},
 			// path: App.Config.SOCKET_PATH
 		})
@@ -465,6 +467,7 @@ export default async function initializeSocket(server) {
 			}
 		})
 		})
+		registerTicTacToe(io)
 	} catch (error) {
 		Logger.error(error)
 		throw error

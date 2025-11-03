@@ -11,6 +11,8 @@ import { maintenanceMode } from '@middlewares/maintenance-mode'
 import { Wrap } from '@core/utils'
 import Paginator from '@helpers/pagination.helper'
 
+import { Server } from 'socket.io'
+
 export class Application {
 	private app: express.Application
 
@@ -108,13 +110,13 @@ export class Application {
 				return res.success({ ...result })
 			})
 		)
-
+        this.app.use('/api/v1', AppRoutes)
 		this.app.put('*', maintenanceMode)
 		this.app.post('*', maintenanceMode)
 		this.app.patch('*', maintenanceMode)
 		this.app.delete('*', maintenanceMode)
 
-		this.app.use('/api/v1', AppRoutes)
+		
 
 		this.app.get('/', (_req: Request, res: Response) => {
 			return res.success({ message: 'Welcome' })
